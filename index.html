@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialAI Generator - Create Viral Content in Seconds</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 0, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0, 200, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(255, 0, 150, 0.1) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5%, -5%); }
+        }
+
+        /* Header */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #a78bfa;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+        }
+
+        .hero h2 {
+            font-size: 52px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero h2 span {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .platforms {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .platform-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s, background 0.3s;
+            cursor: pointer;
+        }
+
+        .platform-icon:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Generator */
+        .generator-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px 100px;
+        }
+
+        .generator-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        select, input, textarea:focus {
+            outline: none;
+            border-color: #7c3aed;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Output Section */
+        .output-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .output-section.active {
+            display: block;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .output-header h3 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .output-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .output-card .platform-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .output-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: pre-wrap;
+        }
+
+        .hashtags {
+            color: #06b6d4;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        footer a {
+            color: #a78bfa;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 36px;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .generator-card {
+                padding: 25px;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Pricing Cards */
+        .pricing-section {
+            max-width: 1000px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .pricing-section h3 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(124, 58, 237, 0.5);
+        }
+
+        .pricing-card.featured {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .pricing-card h4 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .price span {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            color: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pricing-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pricing-btn.primary {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            color: #fff;
+        }
+
+        .pricing-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🚀</div>
+            <h1>SocialAI</h1>
+        </div>
+        <nav class="nav-links">
+            <a href="#generator">Generator</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+        <button class="cta-btn">Get Started Free</button>
+    </header>
+
+    <section class="hero">
+        <h2>Create <span>Viral Social Media</span><br>Content in Seconds</h2>
+        <p>AI-powered content generator for Twitter, Instagram, LinkedIn, TikTok & more. Generate engaging posts, captions, and hashtags instantly.</p>
+        <div class="platforms">
+            <div class="platform-icon" title="Twitter/X">𝕏</div>
+            <div class="platform-icon" title="Instagram">📷</div>
+            <div class="platform-icon" title="LinkedIn">💼</div>
+            <div class="platform-icon" title="TikTok">🎵</div>
+            <div class="platform-icon" title="Facebook">📘</div>
+        </div>
+    </section>
+
+    <section class="generator-container" id="generator">
+        <div class="generator-card">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>📱 Platform</label>
+                    <select id="platform">
+                        <option value="twitter">Twitter / X</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="youtube">YouTube</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>🎭 Content Type</label>
+                    <select id="contentType">
+                        <option value="promotional">Promotional Post</option>
+                        <option value="engagement">Engagement Post</option>
+                        <option value="educational">Educational Content</option>
+                        <option value="storytelling">Storytelling</option>
+                        <option value="question">Question / Poll</option>
+                        <option value="announcement">Announcement</option>
+                        <option value="motivational">Motivational</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>🎯 Topic / Niche</label>
+                    <input type="text" id="topic" placeholder="e.g., AI tools, cryptocurrency, fitness, cooking...">
+                </div>
+                <div class="input-group">
+                    <label>🎨 Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual & Friendly</option>
+                        <option value="humorous">Humorous</option>
+                        <option value="inspiring">Inspiring</option>
+                        <option value="bold">Bold & Confident</option>
+                        <option value="educational">Educational</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>💡 Additional Details (Optional)</label>
+                <textarea id="details" placeholder="Add any specific details, keywords, or context you want to include..."></textarea>
+            </div>
+
+            <button class="generate-btn" id="generateBtnMain" onclick="generateContent()">
+                <span class="loading-spinner" id="loadingSpinner"></span>
+                <span id="btnText">✨ Generate Content</span>
+            </button>
+
+            <div style="text-align: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                ⚡ Powered by Llama 4 Scout (Free · OpenRouter)
+            </div>
+            </button>
+
+            <div class="output-section" id="outputSection">
+                <div class="output-header">
+                    <h3>🎉 Your Generated Content</h3>
+                    <button class="copy-btn" onclick="copyContent()">
+                        📋 Copy
+                    </button>
+                </div>
+
+                <div class="output-card">
+                    <span class="platform-badge" id="platformBadge">Twitter/X</span>
+                    <div class="output-content" id="outputContent"></div>
+                </div>
+
+                <button class="generate-btn" id="generateBtnAnother" onclick="generateContent()" style="margin-top: 20px; background: rgba(255,255,255,0.1);">
+                    🔄 Generate Another
+                </button>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-number">10K+</div>
+                    <div class="stat-label">Posts Generated</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Happy Users</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Satisfaction Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing-section" id="pricing">
+        <h3>Simple, Crypto-Friendly Pricing</h3>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h4>🌱 Free</h4>
+                <div class="price">$0 <span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>5 generations/day</li>
+                    <li>All platforms</li>
+                    <li>Basic tones</li>
+                    <li>Community support</li>
+                </ul>
+                <button class="pricing-btn secondary">Start Free</button>
+            </div>
+            <div class="pricing-card featured">
+                <h4>🚀 Pro</h4>
+                <div class="price">$9 <span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>100 generations/day</li>
+                    <li>All platforms</li>
+                    <li>All tones & styles</li>
+                    <li>Priority support</li>
+                    <li>No watermark</li>
+                </ul>
+                <button class="pricing-btn primary">Pay with Crypto</button>
+            </div>
+            <div class="pricing-card">
+                <h4>🏢 Business</h4>
+                <div class="price">$29 <span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>Unlimited generations</li>
+                    <li>API access</li>
+                    <li>Custom branding</li>
+                    <li>Team collaboration</li>
+                    <li>Dedicated support</li>
+                </ul>
+                <button class="pricing-btn secondary">Contact Us</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2024 SocialAI Generator. Accepting <a href="#">BTC</a>, <a href="#">ETH</a>, <a href="#">USDT</a> payments.</p>
+        <p style="margin-top: 10px; font-size: 14px;">Made with ❤️ for content creators worldwide</p>
+    </footer>
+
+    <div class="toast" id="toast">Content copied to clipboard!</div>
+
+    <script>
+        // ============================================================
+        // OPENROUTER API CONFIG (free model)
+        // ⚠️  Key is visible in browser DevTools — local use only.
+        // ⚠️  Never share this file with the key in it.
+        // ============================================================
+        const GLM_API_KEY = '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';
+        const GLM_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+        const GLM_MODEL = 'google/gemma-4-26b-a4b-it:free';
+
+        // Per-platform length limits (chars) and human labels
+        const PLATFORM_LIMITS = {
+            twitter:   { max: 280,  label: 'Twitter / X' },
+            instagram: { max: 2200, label: 'Instagram' },
+            linkedin:  { max: 3000, label: 'LinkedIn' },
+            tiktok:    { max: 2200, label: 'TikTok' },
+            facebook:  { max: 5000, label: 'Facebook' },
+            youtube:   { max: 5000, label: 'YouTube' }
+        };
+
+        // Human-readable content-type descriptions for the prompt
+        const CONTENT_TYPE_DESC = {
+            promotional:  'a promotional post that sells or hypes',
+            engagement:   'an engagement post that asks a question or sparks discussion',
+            educational:  'an educational post that teaches or shares a tip',
+            storytelling: 'a storytelling post that opens a narrative thread',
+            question:     'a question or poll post that drives replies',
+            announcement: 'an announcement post that reveals news',
+            motivational: 'a motivational post that inspires'
+        };
+
+        // Show a toast notification (reuses existing #toast, swaps color for errors)
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = isError ? '#ef4444' : '#10b981';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function generateContent() {
+            const platform = document.getElementById('platform').value;
+            const contentType = document.getElementById('contentType').value;
+            const topic = document.getElementById('topic').value.trim() || 'your niche';
+            const tone = document.getElementById('tone').value;
+            const details = document.getElementById('details').value.trim();
+
+            // Guard: API key must be set
+            if (!GLM_API_KEY || GLM_API_KEY === 'YOUR_NEW_KEY_HERE') {
+                showToast('⚠️ Add your GLM API key in the <script> tag first', true);
+                return;
+            }
+
+            const platformInfo = PLATFORM_LIMITS[platform] || PLATFORM_LIMITS.twitter;
+            const contentTypeDesc = CONTENT_TYPE_DESC[contentType] || 'a social post';
+
+            // Both generate buttons (main + "Generate Another")
+            const buttons = [
+                document.getElementById('generateBtnMain'),
+                document.getElementById('generateBtnAnother')
+            ].filter(Boolean);
+            const spinner = document.getElementById('loadingSpinner');
+            const btnText = document.getElementById('btnText');
+
+            // Loading state
+            buttons.forEach(b => b.disabled = true);
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Generating...';
+
+            // Build the system + user prompt for the LLM
+            const systemPrompt =
+                'You are an expert social media copywriter. ' +
+                'You write high-performing, platform-native posts that get engagement. ' +
+                'You output ONLY the post text itself — no preamble, no explanation, ' +
+                'no "Here is your post:", no quotes around it, no markdown code fences. ' +
+                'Just the ready-to-publish content.';
+
+            let userPrompt =
+                `Write ${contentTypeDesc} for ${platformInfo.label}.\n` +
+                `Topic / niche: ${topic}.\n` +
+                `Tone: ${tone}.\n` +
+                `Hard limit: ${platformInfo.max} characters maximum.\n` +
+                `Rules:\n` +
+                `- Match the platform's native style and best practices.\n` +
+                `- Use 2-5 relevant hashtags placed naturally at the end.\n` +
+                `- Use line breaks for readability. No wall of text.\n` +
+                `- Be specific and concrete, not generic. No [bracketed placeholders].\n` +
+                `- Output ONLY the post. Nothing else.`;
+            if (details) {
+                userPrompt += `\nAdditional context to include: ${details}`;
+            }
+
+            // Call the GLM API
+            (async () => {
+                try {
+                    const response = await fetch(GLM_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + GLM_API_KEY,
+                            'HTTP-Referer': window.location.href,
+                            'X-Title': 'SocialAI Generator'
+                        },
+                        body: JSON.stringify({
+                            model: GLM_MODEL,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user',   content: userPrompt }
+                            ],
+                            temperature: 0.9,
+                            max_tokens: 1024
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errText = await response.text().catch(() => '');
+                        console.error('GLM API error', response.status, errText);
+                        throw new Error(`API ${response.status}: ${errText.slice(0, 200) || response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    const content = (data.choices && data.choices[0] && data.choices[0].message &&
+                                     data.choices[0].message.content || '').trim();
+
+                    if (!content) {
+                        throw new Error('Empty response from API');
+                    }
+
+                    // Update output UI
+                    document.getElementById('platformBadge').textContent = platformInfo.label;
+                    document.getElementById('outputContent').textContent = content;
+                    document.getElementById('outputSection').classList.add('active');
+                    document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+
+                } catch (err) {
+                    console.error('generateContent failed:', err);
+                    let msg = '⚠️ Generation failed. ';
+                    if (err && err.message && err.message.includes('401')) {
+                        msg += 'Check your API key (401 Unauthorized).';
+                    } else if (err && err.message && err.message.includes('404')) {
+                        msg += 'Model "' + GLM_MODEL + '" not found (404). Try another model name.';
+                    } else if (err && err.message && err.message.includes('Failed to fetch')) {
+                        msg += 'Network/CORS error — check your connection.';
+                    } else {
+                        msg += (err && err.message) ? err.message : 'Unknown error.';
+                    }
+                    showToast(msg, true);
+                } finally {
+                    // Always reset the buttons, even on error
+                    buttons.forEach(b => b.disabled = false);
+                    spinner.style.display = 'none';
+                    btnText.textContent = '✨ Generate Content';
+                }
+            })();
+        }
+
+        function copyContent() {
+            const content = document.getElementById('outputContent').textContent;
+            if (!content) {
+                showToast('Nothing to copy yet', true);
+                return;
+            }
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('Copied to clipboard!');
+            }).catch(() => {
+                showToast('Copy failed — select text manually', true);
+            });
+        }
+
+        // Platform icon click handlers
+        document.querySelectorAll('.platform-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const platformMap = {
+                    '𝕏': 'twitter',
+                    '📷': 'instagram',
+                    '💼': 'linkedin',
+                    '🎵': 'tiktok',
+                    '📘': 'facebook'
+                };
+                const platform = platformMap[this.textContent];
+                if (platform) {
+                    document.getElementById('platform').value = platform;
+                    document.getElementById('topic').focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
