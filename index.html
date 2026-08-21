@@ -551,6 +551,11 @@
 
     <section class="generator-container" id="generator">
         <div class="generator-card">
+            <div class="input-group">
+                <label>OpenRouter API Key <span style="font-weight:400;color:#6b7280;">— free at openrouter.ai/keys, saved only in your browser</span></label>
+                <input type="password" id="apiKeyInput" placeholder="sk-or-v1-…" autocomplete="off">
+            </div>
+
             <div class="input-row">
                 <div class="input-group">
                     <label>Platform</label>
@@ -606,7 +611,7 @@
             </button>
 
             <div class="powered-note">
-                ⚡ Powered by Gemma (Free · OpenRouter)
+                ⚡ Free AI via OpenRouter — paste your free key above
             </div>
 
             <div class="output-section" id="outputSection">
@@ -685,9 +690,39 @@
         // ⚠️  Key is visible in browser DevTools — local use only.
         // ⚠️  Never share this file with the key in it.
         // ============================================================
-        const GLM_API_KEY = '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';
+        // BYOK — each visitor pastes their own FREE OpenRouter key (openrouter.ai/keys).
+        // Stored only in their browser. No key ships with this file.
         const GLM_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-        const GLM_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
+        const MODELS_ENDPOINT = 'https://openrouter.ai/api/v1/models';
+        // ranked by live test 2026-08: nemotron-ultra = fastest + cleanest.
+        // nemotron super/lightning EXCLUDED — they leak chain-of-thought into posts.
+        const PREFERRED_MODELS = [
+            'nvidia/nemotron-3-ultra-550b-a55b:free',
+            'google/gemma-4-26b-a4b-it:free',
+            'openai/gpt-oss-20b:free',
+            'google/gemma-4-31b-it:free',
+            'z-ai/glm-5.2:free'
+        ];
+        let discoveredFree = null;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        function getApiKey() {
+            const el = document.getElementById('apiKeyInput');
+            if (el && el.value.trim()) { localStorage.setItem('or_key', el.value.trim()); return el.value.trim(); }
+            return localStorage.getItem('or_key') || '';
+        }
+        // discover live free models at runtime so provider renames never break the app
+        async function freeModelCandidates() {
+            const list = [...PREFERRED_MODELS];
+            if (!discoveredFree) {
+                try {
+                    const r = await fetch(MODELS_ENDPOINT);
+                    const d = await r.json();
+                    discoveredFree = (d.data || []).map(m => m.id).filter(id => id.endsWith(':free'));
+                } catch (e) { discoveredFree = []; }
+            }
+            discoveredFree.forEach(id => { if (!list.includes(id)) list.push(id); });
+            return list;
+        }
 
         // Per-platform length limits (chars) and human labels
         const PLATFORM_LIMITS = {
@@ -726,9 +761,11 @@
             const tone = document.getElementById('tone').value;
             const details = document.getElementById('details').value.trim();
 
-            // Guard: API key must be set
-            if (!GLM_API_KEY || GLM_API_KEY === 'YOUR_NEW_KEY_HERE') {
-                showToast('⚠️ Add your GLM API key in the <script> tag first', true);
+            // Guard: visitor must supply their own key
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                showToast('⚠️ Paste your free OpenRouter key first — get one at openrouter.ai/keys', true);
+                document.getElementById('apiKeyInput').focus();
                 return;
             }
 
@@ -771,45 +808,62 @@
                 userPrompt += `\nAdditional context to include: ${details}`;
             }
 
-            // Call the API
+            // Call the API — try preferred free models, then live-discovered ones.
+            // 429 = transient throttle (retry same model once), other errors = next model.
             (async () => {
+                let lastErr = '';
                 try {
-                    const response = await fetch(GLM_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + GLM_API_KEY,
-                            'HTTP-Referer': window.location.href,
-                            'X-Title': 'SocialAI Generator'
-                        },
-                        body: JSON.stringify({
-                            model: GLM_MODEL,
-                            messages: [
-                                { role: 'system', content: systemPrompt },
-                                { role: 'user',   content: userPrompt }
-                            ],
-                            temperature: 0.9,
-                            max_tokens: 1024
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errText = await response.text().catch(() => '');
-                        console.error('API error', response.status, errText);
-                        throw new Error(`API ${response.status}: ${errText.slice(0, 200) || response.statusText}`);
+                    const candidates = await freeModelCandidates();
+                    let content = '', usedModel = '';
+                    for (let ci = 0; ci < Math.min(candidates.length, 8) && !content; ci++) {
+                        const model = candidates[ci];
+                        for (let attempt = 0; attempt < 2 && !content; attempt++) {
+                            try {
+                                const response = await fetch(GLM_ENDPOINT, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Bearer ' + apiKey,
+                                        'HTTP-Referer': window.location.href,
+                                        'X-Title': 'SocialAI Generator'
+                                    },
+                                    body: JSON.stringify({
+                                        model,
+                                        messages: [
+                                            { role: 'system', content: systemPrompt },
+                                            { role: 'user',   content: userPrompt }
+                                        ],
+                                        temperature: 0.9,
+                                        max_tokens: 1024
+                                    })
+                                });
+                                if (response.status === 429 && attempt === 0) { await sleep(2500); continue; }
+                                if (!response.ok) {
+                                    lastErr = 'API ' + response.status + ' (' + model.split('/').pop() + ')';
+                                    break;
+                                }
+                                const data = await response.json();
+                                content = (data.choices && data.choices[0] && data.choices[0].message &&
+                                           data.choices[0].message.content || '').trim();
+                                if (!content) { lastErr = 'empty response (' + model.split('/').pop() + ')'; break; }
+                                // reasoning-leak guard: a social post this long means the model
+                                // dumped its thinking process — reject and try the next model
+                                if (content.length > Math.min(4000, platformInfo.max * 2 + 150)) {
+                                    lastErr = 'leaked reasoning (' + model.split('/').pop() + ')';
+                                    content = '';
+                                    break;
+                                }
+                                usedModel = model;
+                            } catch (e) { lastErr = e.message || 'network error'; break; }
+                        }
                     }
+                    if (!content) throw new Error(lastErr || 'all free models busy — try again in a minute');
 
-                    const data = await response.json();
-                    const content = (data.choices && data.choices[0] && data.choices[0].message &&
-                                     data.choices[0].message.content || '').trim();
-
-                    if (!content) {
-                        throw new Error('Empty response from API');
-                    }
-
-                    // Update output UI
+                    // Update output UI + show which model answered
                     document.getElementById('platformBadge').textContent = platformInfo.label;
                     document.getElementById('outputContent').textContent = content;
+                    const note = document.querySelector('.powered-note');
+                    if (note) note.textContent = '⚡ answered by ' + usedModel.split('/').pop() + ' · free via OpenRouter';
                     document.getElementById('outputSection').classList.add('active');
                     document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
 
@@ -864,6 +918,12 @@
                 showToast('Copy failed — select the address manually', true);
             });
         }
+
+        // restore saved API key
+        (function() {
+            const saved = localStorage.getItem('or_key');
+            if (saved) document.getElementById('apiKeyInput').value = saved;
+        })();
 
         // Platform icon click handlers
         document.querySelectorAll('.platform-icon').forEach(icon => {
