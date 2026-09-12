@@ -696,6 +696,8 @@
         const MODELS_ENDPOINT = 'https://openrouter.ai/api/v1/models';
         // ranked by live test 2026-08: nemotron-ultra = fastest + cleanest.
         // nemotron super/lightning EXCLUDED — they leak chain-of-thought into posts.
+        // auto-branding: appended to every generated post so the tool spreads itself
+        const SIG = '\n\n—\n⚡ generated with SocialAI — free, bring your own key\n👉 https://wolverup.github.io/Social-AI/';
         const PREFERRED_MODELS = [
             'nvidia/nemotron-3-ultra-550b-a55b:free',
             'google/gemma-4-26b-a4b-it:free',
@@ -797,7 +799,7 @@
                 `Write ${contentTypeDesc} for ${platformInfo.label}.\n` +
                 `Topic / niche: ${topic}.\n` +
                 `Tone: ${tone}.\n` +
-                `Hard limit: ${platformInfo.max} characters maximum.\n` +
+                `Hard limit: ${Math.max(80, platformInfo.max - 85)} characters maximum (stay well under — a one-line credit is appended automatically).\n` +
                 `Rules:\n` +
                 `- Match the platform's native style and best practices.\n` +
                 `- Use 2-5 relevant hashtags placed naturally at the end.\n` +
@@ -859,9 +861,9 @@
                     }
                     if (!content) throw new Error(lastErr || 'all free models busy — try again in a minute');
 
-                    // Update output UI + show which model answered
+                    // Update output UI + stamp the SocialAI credit
                     document.getElementById('platformBadge').textContent = platformInfo.label;
-                    document.getElementById('outputContent').textContent = content;
+                    document.getElementById('outputContent').textContent = content + SIG;
                     const note = document.querySelector('.powered-note');
                     if (note) note.textContent = '⚡ answered by ' + usedModel.split('/').pop() + ' · free via OpenRouter';
                     document.getElementById('outputSection').classList.add('active');
