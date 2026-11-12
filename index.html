@@ -208,6 +208,26 @@
             color: #0f0f0f;
         }
 
+        .cors-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+            cursor: pointer;
+        }
+
+        .cors-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #f59e0b;
+        }
+
         textarea {
             min-height: 110px;
             resize: vertical;
@@ -270,6 +290,26 @@
             margin-top: 12px;
             font-size: 13px;
             color: #a1a1aa;
+        }
+
+        /* Provider badge in output */
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #f4f4f5;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .provider-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
         }
 
         /* Output Section */
@@ -521,6 +561,25 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Provider selector styling */
+        .provider-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .provider-info .provider-logo {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -539,7 +598,7 @@
 
     <section class="hero">
         <h2>Create <span>Viral Social Media</span><br>Content in Seconds</h2>
-        <p>AI-powered content generator for Twitter, Instagram, LinkedIn, TikTok &amp; more. Generate engaging posts, captions, and hashtags instantly.</p>
+        <p>AI-powered content generator for Twitter, Instagram, LinkedIn, TikTok & more. Generate engaging posts, captions, and hashtags instantly.</p>
         <div class="platforms">
             <div class="platform-icon" title="Twitter/X">𝕏</div>
             <div class="platform-icon" title="Instagram">📷</div>
@@ -552,8 +611,27 @@
     <section class="generator-container" id="generator">
         <div class="generator-card">
             <div class="input-group">
-                <label>OpenRouter API Key <span style="font-weight:400;color:#6b7280;">— free at openrouter.ai/keys, saved only in your browser</span></label>
+                <label>AI Provider</label>
+                <select id="providerSelect" onchange="onProviderChange()">
+                    <option value="openrouter">OpenRouter (free models)</option>
+                    <option value="nvidia">NVIDIA NIM API</option>
+                    <option value="groq">Groq (fast inference)</option>
+                    <option value="together">Together AI</option>
+                    <option value="custom">Custom OpenAI-compatible</option>
+                </select>
+            </div>
+
+            <div class="input-group" id="apiKeyGroup">
+                <label id="apiKeyLabel">OpenRouter API Key <span style="font-weight:400;color:#6b7280;">— free at openrouter.ai/keys, saved only in your browser</span></label>
                 <input type="password" id="apiKeyInput" placeholder="sk-or-v1-…" autocomplete="off">
+                <div class="provider-info" id="providerInfo">
+                    <span class="provider-logo" id="providerLogo">🔑</span>
+                    <span id="providerHint">Get your free key at <a href="https://openrouter.ai/keys" target="_blank" style="color: #0f0f0f;">openrouter.ai/keys</a></span>
+                </div>
+                <label class="cors-toggle" id="corsToggle" style="display: none;">
+                    <input type="checkbox" id="useCorsProxy" onchange="toggleCorsProxy()">
+                    <span>Use CORS Proxy (required for NVIDIA, Together AI in browser)</span>
+                </label>
             </div>
 
             <div class="input-row">
@@ -591,10 +669,10 @@
                     <label>Tone</label>
                     <select id="tone">
                         <option value="professional">Professional</option>
-                        <option value="casual">Casual &amp; Friendly</option>
+                        <option value="casual">Casual & Friendly</option>
                         <option value="humorous">Humorous</option>
                         <option value="inspiring">Inspiring</option>
-                        <option value="bold">Bold &amp; Confident</option>
+                        <option value="bold">Bold & Confident</option>
                         <option value="educational">Educational</option>
                     </select>
                 </div>
@@ -610,7 +688,7 @@
                 <span id="btnText">Generate Content</span>
             </button>
 
-            <div class="powered-note">
+            <div class="powered-note" id="poweredNote">
                 ⚡ Free AI via OpenRouter — paste your free key above
             </div>
 
@@ -623,6 +701,10 @@
                 </div>
 
                 <div class="output-card">
+                    <div class="provider-badge" id="providerBadge">
+                        <span class="dot" id="providerDot"></span>
+                        <span id="providerName">OpenRouter</span>
+                    </div>
                     <span class="platform-badge" id="platformBadge">Twitter/X</span>
                     <div class="output-content" id="outputContent"></div>
                 </div>
@@ -686,47 +768,94 @@
 
     <script>
         // ============================================================
-        // OPENROUTER API CONFIG (free model)
-        // ⚠️  Key is visible in browser DevTools — local use only.
-        // ⚠️  Never share this file with the key in it.
+        // MULTI-PROVIDER AI CONFIG
         // ============================================================
-        // BYOK — each visitor pastes their own FREE OpenRouter key (openrouter.ai/keys).
-        // Stored only in their browser. No key ships with this file.
-        const GLM_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-        const MODELS_ENDPOINT = 'https://openrouter.ai/api/v1/models';
-        // ranked by live test 2026-08: nemotron-ultra = fastest + cleanest.
-        // nemotron super/lightning EXCLUDED — they leak chain-of-thought into posts.
-        // auto-branding: appended to every generated post so the tool spreads itself
-        const SIG = '\n\n—\n⚡ generated with SocialAI — free, bring your own key\n👉 https://wolverup.github.io/Social-AI/';
-        const PREFERRED_MODELS = [
-            'nvidia/nemotron-3-ultra-550b-a55b:free',
-            'google/gemma-4-26b-a4b-it:free',
-            'openai/gpt-oss-20b:free',
-            'google/gemma-4-31b-it:free',
-            'z-ai/glm-5.2:free'
-        ];
-        let discoveredFree = null;
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        function getApiKey() {
-            const el = document.getElementById('apiKeyInput');
-            if (el && el.value.trim()) { localStorage.setItem('or_key', el.value.trim()); return el.value.trim(); }
-            return localStorage.getItem('or_key') || '';
-        }
-        // discover live free models at runtime so provider renames never break the app
-        async function freeModelCandidates() {
-            const list = [...PREFERRED_MODELS];
-            if (!discoveredFree) {
-                try {
-                    const r = await fetch(MODELS_ENDPOINT);
-                    const d = await r.json();
-                    discoveredFree = (d.data || []).map(m => m.id).filter(id => id.endsWith(':free'));
-                } catch (e) { discoveredFree = []; }
+        const PROVIDERS = {
+            openrouter: {
+                name: 'OpenRouter',
+                endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+                modelsEndpoint: 'https://openrouter.ai/api/v1/models',
+                keyPrefix: 'sk-or-',
+                storageKey: 'or_key',
+                defaultModels: [
+                    'nvidia/nemotron-3-ultra-550b-a55b:free',
+                    'google/gemma-4-26b-a4b-it:free',
+                    'openai/gpt-oss-20b:free',
+                    'google/gemma-4-31b-it:free',
+                    'z-ai/glm-5.2:free'
+                ],
+                logo: '🌐',
+                hint: 'Get your free key at <a href="https://openrouter.ai/keys" target="_blank" style="color: #0f0f0f;">openrouter.ai/keys</a>',
+                isFreeTier: true
+            },
+            nvidia: {
+                name: 'NVIDIA NIM',
+                endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
+                corsProxy: 'https://cors-anywhere.herokuapp.com/',
+                keyPrefix: 'nvapi-',
+                storageKey: 'nvidia_key',
+                defaultModels: [
+                    'nvidia/nemotron-3-ultra-550b-a55b',
+                    'nvidia/nemotron-3.5-lightning-30b-a3b',
+                    'nvidia/nemotron-3.5-bolt-e4b',
+                    'deepseek-ai/deepseek-v4.1-flash',
+                    'z-ai/glm-5.3-flash',
+                    'meta/llama-3.2-90b-vision-instruct'
+                ],
+                logo: '🟢',
+                hint: 'Get your NVIDIA API key at <a href="https://build.nvidia.com" target="_blank" style="color: #0f0f0f;">build.nvidia.com</a> — requires CORS proxy for browser use',
+                isFreeTier: false
+            },
+            groq: {
+                name: 'Groq',
+                endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                keyPrefix: 'gsk_',
+                storageKey: 'groq_key',
+                defaultModels: [
+                    'llama-3.3-70b-versatile',
+                    'llama-3.1-70b-versatile',
+                    'mixtral-8x7b-32768',
+                    'gemma2-9b-it'
+                ],
+                logo: '⚡',
+                hint: 'Get your Groq API key at <a href="https://console.groq.com/keys" target="_blank" style="color: #0f0f0f;">console.groq.com/keys</a>',
+                isFreeTier: true
+            },
+            together: {
+                name: 'Together AI',
+                endpoint: 'https://api.together.xyz/v1/chat/completions',
+                corsProxy: 'https://cors-anywhere.herokuapp.com/',
+                keyPrefix: '',
+                storageKey: 'together_key',
+                defaultModels: [
+                    'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+                    'mistralai/Mixtral-8x7B-Instruct-v0.1',
+                    'google/gemma-2-27b-it'
+                ],
+                logo: '🤝',
+                hint: 'Get your Together API key at <a href="https://api.together.xyz/settings/api-keys" target="_blank" style="color: #0f0f0f;">api.together.xyz</a> — requires CORS proxy for browser use',
+                isFreeTier: true
+            },
+            custom: {
+                name: 'Custom Endpoint',
+                endpoint: '',
+                keyPrefix: '',
+                storageKey: 'custom_key',
+                defaultModels: [],
+                logo: '🔧',
+                hint: 'Enter your OpenAI-compatible endpoint URL and key',
+                isFreeTier: false
             }
-            discoveredFree.forEach(id => { if (!list.includes(id)) list.push(id); });
-            return list;
-        }
+        };
 
-        // Per-platform length limits (chars) and human labels
+        let currentProvider = 'openrouter';
+        let discoveredFreeModels = null;
+
+        // ============================================================
+        // SHARED CONFIG
+        // ============================================================
+        const SIG = '\n\n—\n⚡ generated with SocialAI — free, bring your own key\n👉 https://wolverup.github.io/Social-AI/';
+
         const PLATFORM_LIMITS = {
             twitter:   { max: 280,  label: 'Twitter / X' },
             instagram: { max: 2200, label: 'Instagram' },
@@ -736,7 +865,6 @@
             youtube:   { max: 5000, label: 'YouTube' }
         };
 
-        // Human-readable content-type descriptions for the prompt
         const CONTENT_TYPE_DESC = {
             promotional:  'a promotional post that sells or hypes',
             engagement:   'an engagement post that asks a question or sparks discussion',
@@ -747,7 +875,175 @@
             motivational: 'a motivational post that inspires'
         };
 
-        // Show a toast notification (reuses existing #toast)
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Restore saved provider
+            const savedProvider = localStorage.getItem('selected_provider') || 'openrouter';
+            currentProvider = savedProvider;
+            document.getElementById('providerSelect').value = savedProvider;
+            onProviderChange();
+
+            // Restore saved API key for current provider
+            restoreApiKey();
+
+            // Platform icon click handlers
+            document.querySelectorAll('.platform-icon').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const platformMap = {
+                        '𝕏': 'twitter', '📷': 'instagram', '💼': 'linkedin',
+                        '🎵': 'tiktok', '📘': 'facebook'
+                    };
+                    const platform = platformMap[this.textContent];
+                    if (platform) {
+                        document.getElementById('platform').value = platform;
+                        document.getElementById('topic').focus();
+                    }
+                });
+            });
+        });
+
+        // ============================================================
+        // PROVIDER HANDLING
+        // ============================================================
+        function onProviderChange() {
+            currentProvider = document.getElementById('providerSelect').value;
+            localStorage.setItem('selected_provider', currentProvider);
+            updateProviderUI();
+            restoreApiKey();
+        }
+
+        function updateProviderUI() {
+            const p = PROVIDERS[currentProvider];
+            const label = document.getElementById('apiKeyLabel');
+            const input = document.getElementById('apiKeyInput');
+            const hint = document.getElementById('providerHint');
+            const logo = document.getElementById('providerLogo');
+            const note = document.getElementById('poweredNote');
+            const corsToggle = document.getElementById('corsToggle');
+            const corsCheckbox = document.getElementById('useCorsProxy');
+
+            label.innerHTML = `${p.name} API Key <span style="font-weight:400;color:#6b7280;">— ${p.isFreeTier ? 'free tier available' : 'paid/credit required'}, saved only in your browser</span>`;
+            input.placeholder = p.keyPrefix ? `${p.keyPrefix}…` : 'Enter API key…';
+            hint.innerHTML = p.hint;
+            logo.textContent = p.logo;
+
+            // Show CORS toggle for providers that need it
+            if (p.corsProxy) {
+                corsToggle.style.display = 'flex';
+                const savedCors = localStorage.getItem(p.storageKey + '_cors');
+                corsCheckbox.checked = savedCors === 'true';
+            } else {
+                corsToggle.style.display = 'none';
+                corsCheckbox.checked = false;
+            }
+
+            if (currentProvider === 'custom') {
+                // Add custom endpoint input
+                if (!document.getElementById('customEndpointInput')) {
+                    const endpointInput = document.createElement('input');
+                    endpointInput.type = 'text';
+                    endpointInput.id = 'customEndpointInput';
+                    endpointInput.placeholder = 'https://your-endpoint.com/v1/chat/completions';
+                    endpointInput.style.marginTop = '8px';
+                    endpointInput.style.width = '100%';
+                    input.parentNode.appendChild(endpointInput);
+                    // Restore saved endpoint
+                    const savedEndpoint = localStorage.getItem('custom_endpoint');
+                    if (savedEndpoint) endpointInput.value = savedEndpoint;
+                }
+            } else {
+                const customEndpoint = document.getElementById('customEndpointInput');
+                if (customEndpoint) customEndpoint.remove();
+            }
+
+            if (note) {
+                note.textContent = p.isFreeTier 
+                    ? `⚡ ${p.name} ${p.isFreeTier ? 'free models' : 'API'} — paste your key above`
+                    : `⚡ ${p.name} API — paste your key above`;
+            }
+        }
+
+        function toggleCorsProxy() {
+            const corsCheckbox = document.getElementById('useCorsProxy');
+            const p = getProviderConfig();
+            localStorage.setItem(p.storageKey + '_cors', corsCheckbox.checked.toString());
+        }
+
+        function getProviderConfig() {
+            return PROVIDERS[currentProvider];
+        }
+
+        function getApiKey() {
+            const p = getProviderConfig();
+            const el = document.getElementById('apiKeyInput');
+            if (el && el.value.trim()) {
+                localStorage.setItem(p.storageKey, el.value.trim());
+                return el.value.trim();
+            }
+            return localStorage.getItem(p.storageKey) || '';
+        }
+
+        function getEndpoint() {
+            const p = getProviderConfig();
+            if (currentProvider === 'custom') {
+                const customEndpoint = document.getElementById('customEndpointInput');
+                return customEndpoint?.value?.trim() || p.endpoint;
+            }
+            
+            // Check if CORS proxy should be used
+            const corsCheckbox = document.getElementById('useCorsProxy');
+            if (corsCheckbox?.checked && p.corsProxy) {
+                return p.corsProxy + p.endpoint;
+            }
+            return p.endpoint;
+        }
+
+        function restoreApiKey() {
+            const p = getProviderConfig();
+            const saved = localStorage.getItem(p.storageKey);
+            if (saved) document.getElementById('apiKeyInput').value = saved;
+            if (currentProvider === 'custom') {
+                const savedEndpoint = localStorage.getItem('custom_endpoint');
+                const customEndpoint = document.getElementById('customEndpointInput');
+                if (savedEndpoint && customEndpoint) customEndpoint.value = savedEndpoint;
+            }
+        }
+
+        // ============================================================
+        // MODEL DISCOVERY
+        // ============================================================
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function freeModelCandidates() {
+            const p = getProviderConfig();
+            const list = [...p.defaultModels];
+
+            if (p.isFreeTier && p.modelsEndpoint && !discoveredFreeModels) {
+                try {
+                    // Use CORS proxy for model discovery if needed
+                    const corsCheckbox = document.getElementById('useCorsProxy');
+                    const modelEndpoint = (corsCheckbox?.checked && p.corsProxy) 
+                        ? p.corsProxy + p.modelsEndpoint 
+                        : p.modelsEndpoint;
+                    
+                    const r = await fetch(modelEndpoint);
+                    const d = await r.json();
+                    discoveredFreeModels = (d.data || []).map(m => m.id).filter(id => id.endsWith(':free'));
+                } catch (e) { discoveredFreeModels = []; }
+            }
+
+            if (discoveredFreeModels) {
+                discoveredFreeModels.forEach(id => { if (!list.includes(id)) list.push(id); });
+            }
+
+            return list;
+        }
+
+        // ============================================================
+        // GENERATION
+        // ============================================================
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -763,18 +1059,23 @@
             const tone = document.getElementById('tone').value;
             const details = document.getElementById('details').value.trim();
 
-            // Guard: visitor must supply their own key
             const apiKey = getApiKey();
             if (!apiKey) {
-                showToast('⚠️ Paste your free OpenRouter key first — get one at openrouter.ai/keys', true);
+                const p = getProviderConfig();
+                showToast(`⚠️ Paste your ${p.name} API key first`, true);
                 document.getElementById('apiKeyInput').focus();
+                return;
+            }
+
+            const endpoint = getEndpoint();
+            if (!endpoint) {
+                showToast('⚠️ No endpoint configured for this provider', true);
                 return;
             }
 
             const platformInfo = PLATFORM_LIMITS[platform] || PLATFORM_LIMITS.twitter;
             const contentTypeDesc = CONTENT_TYPE_DESC[contentType] || 'a social post';
 
-            // Both generate buttons (main + "Generate Another")
             const buttons = [
                 document.getElementById('generateBtnMain'),
                 document.getElementById('generateBtnAnother')
@@ -782,12 +1083,10 @@
             const spinner = document.getElementById('loadingSpinner');
             const btnText = document.getElementById('btnText');
 
-            // Loading state
             buttons.forEach(b => b.disabled = true);
             spinner.style.display = 'inline-block';
             btnText.textContent = 'Generating...';
 
-            // Build the system + user prompt for the LLM
             const systemPrompt =
                 'You are an expert social media copywriter. ' +
                 'You write high-performing, platform-native posts that get engagement. ' +
@@ -810,8 +1109,6 @@
                 userPrompt += `\nAdditional context to include: ${details}`;
             }
 
-            // Call the API — try preferred free models, then live-discovered ones.
-            // 429 = transient throttle (retry same model once), other errors = next model.
             (async () => {
                 let lastErr = '';
                 try {
@@ -821,7 +1118,7 @@
                         const model = candidates[ci];
                         for (let attempt = 0; attempt < 2 && !content; attempt++) {
                             try {
-                                const response = await fetch(GLM_ENDPOINT, {
+                                const response = await fetch(endpoint, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -833,7 +1130,7 @@
                                         model,
                                         messages: [
                                             { role: 'system', content: systemPrompt },
-                                            { role: 'user',   content: userPrompt }
+                                            { role: 'user', content: userPrompt }
                                         ],
                                         temperature: 0.9,
                                         max_tokens: 1024
@@ -848,8 +1145,6 @@
                                 content = (data.choices && data.choices[0] && data.choices[0].message &&
                                            data.choices[0].message.content || '').trim();
                                 if (!content) { lastErr = 'empty response (' + model.split('/').pop() + ')'; break; }
-                                // reasoning-leak guard: a social post this long means the model
-                                // dumped its thinking process — reject and try the next model
                                 if (content.length > Math.min(4000, platformInfo.max * 2 + 150)) {
                                     lastErr = 'leaked reasoning (' + model.split('/').pop() + ')';
                                     content = '';
@@ -859,13 +1154,21 @@
                             } catch (e) { lastErr = e.message || 'network error'; break; }
                         }
                     }
-                    if (!content) throw new Error(lastErr || 'all free models busy — try again in a minute');
+                    if (!content) throw new Error(lastErr || 'all models busy — try again in a minute');
 
-                    // Update output UI + stamp the SocialAI credit
+                    // Update output UI
+                    const p = getProviderConfig();
                     document.getElementById('platformBadge').textContent = platformInfo.label;
+                    document.getElementById('providerName').textContent = p.name;
+                    document.getElementById('providerDot').style.background = 
+                        currentProvider === 'nvidia' ? '#76b900' :
+                        currentProvider === 'groq' ? '#f59e0b' :
+                        currentProvider === 'together' ? '#8b5cf6' :
+                        currentProvider === 'custom' ? '#0f0f0f' : '#0066cc';
+                    
                     document.getElementById('outputContent').textContent = content + SIG;
-                    const note = document.querySelector('.powered-note');
-                    if (note) note.textContent = '⚡ answered by ' + usedModel.split('/').pop() + ' · free via OpenRouter';
+                    const note = document.getElementById('poweredNote');
+                    if (note) note.textContent = `⚡ answered by ${usedModel.split('/').pop()} · ${p.name}`;
                     document.getElementById('outputSection').classList.add('active');
                     document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
 
@@ -875,7 +1178,7 @@
                     if (err && err.message && err.message.includes('401')) {
                         msg += 'Check your API key (401 Unauthorized).';
                     } else if (err && err.message && err.message.includes('404')) {
-                        msg += 'Model "' + GLM_MODEL + '" not found (404). Try another model name.';
+                        msg += 'Model not found (404).';
                     } else if (err && err.message && err.message.includes('Failed to fetch')) {
                         msg += 'Network/CORS error — check your connection.';
                     } else {
@@ -883,7 +1186,6 @@
                     }
                     showToast(msg, true);
                 } finally {
-                    // Always reset the buttons, even on error
                     buttons.forEach(b => b.disabled = false);
                     spinner.style.display = 'none';
                     btnText.textContent = 'Generate Content';
@@ -920,30 +1222,6 @@
                 showToast('Copy failed — select the address manually', true);
             });
         }
-
-        // restore saved API key
-        (function() {
-            const saved = localStorage.getItem('or_key');
-            if (saved) document.getElementById('apiKeyInput').value = saved;
-        })();
-
-        // Platform icon click handlers
-        document.querySelectorAll('.platform-icon').forEach(icon => {
-            icon.addEventListener('click', function() {
-                const platformMap = {
-                    '𝕏': 'twitter',
-                    '📷': 'instagram',
-                    '💼': 'linkedin',
-                    '🎵': 'tiktok',
-                    '📘': 'facebook'
-                };
-                const platform = platformMap[this.textContent];
-                if (platform) {
-                    document.getElementById('platform').value = platform;
-                    document.getElementById('topic').focus();
-                }
-            });
-        });
     </script>
 </body>
 </html>
