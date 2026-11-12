@@ -613,8 +613,7 @@
             <div class="input-group">
                 <label>AI Provider</label>
                 <select id="providerSelect" onchange="onProviderChange()">
-                    <option value="openrouter">OpenRouter (free models)</option>
-                    <option value="nvidia">NVIDIA NIM API</option>
+                    <option value="openrouter">OpenRouter (Nemotron 3 Ultra FREE)</option>
                     <option value="groq">Groq (fast inference)</option>
                     <option value="together">Together AI</option>
                     <option value="custom">Custom OpenAI-compatible</option>
@@ -779,27 +778,15 @@
                 storageKey: 'or_key',
                 defaultModels: [
                     'nvidia/nemotron-3-ultra-550b-a55b:free',
+                    'nvidia/nemotron-3.5-lightning:free',
                     'google/gemma-4-26b-a4b-it:free',
                     'openai/gpt-oss-20b:free',
                     'google/gemma-4-31b-it:free',
                     'z-ai/glm-5.2:free'
                 ],
                 logo: '🌐',
-                hint: 'Get your free key at <a href="https://openrouter.ai/keys" target="_blank" style="color: #0f0f0f;">openrouter.ai/keys</a>',
+                hint: 'Get your free key at <a href="https://openrouter.ai/keys" target="_blank" style="color: #0f0f0f;">openrouter.ai/keys</a> — Nemotron 3 Ultra FREE here!',
                 isFreeTier: true
-            },
-            nvidia: {
-                name: 'NVIDIA NIM',
-                endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
-                corsProxy: 'https://cors-anywhere.herokuapp.com/',
-                keyPrefix: 'nvapi-',
-                storageKey: 'nvidia_key',
-                defaultModels: [
-                    'nvidia/nemotron-3-ultra-550b-a55b'
-                ],
-                logo: '🟢',
-                hint: 'Get your NVIDIA API key at <a href="https://build.nvidia.com" target="_blank" style="color: #0f0f0f;">build.nvidia.com</a> — requires CORS proxy for browser use',
-                isFreeTier: false
             },
             groq: {
                 name: 'Groq',
